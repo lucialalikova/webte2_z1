@@ -1,130 +1,133 @@
 <?php
+session_start();
+?>
+<!doctype html>
+<html lang="sk">
 
-$config = require_once('config.php');
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Login/register s 2FA</title>
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.2.2/css/dataTables.dataTables.min.css">
+    <link rel="stylesheet" href="styles/bootstrap.min.css">
+    <link rel="stylesheet" href="styles/styles.css">
 
-$db = connectDatabase($config['hostname'], $config['database'], $config['username'], $config['password']);
-
-function processStatement($stmt) {
-    if ($stmt->execute()) {
-        return "New record created successfully";
-    } else {
-        return "Error: " . $stmt->errorInfo();
-    }
-}
-
-function insertLaureate($db, $name, $surname, $organisation, $sex, $birth_year, $death_year) {
-    $stmt = $db->prepare("INSERT INTO laureates (fullname, organisation, sex, birth_year, death_year) VALUES (:fullname, :organisation, :sex, :birth_year, :death_year)");
-
-    $fullname = $name . " " . $surname;
-
-    $stmt->bindParam(':fullname', $fullname, PDO::PARAM_STR);
-    $stmt->bindParam(':organisation', $organisation, PDO::PARAM_STR);
-    $stmt->bindParam(':sex', $sex, PDO::PARAM_STR);
-    $stmt->bindParam(':birth_year', $birth_year, PDO::PARAM_STR);
-    $stmt->bindParam(':death_year', $death_year, PDO::PARAM_STR);
-
-    return processStatement($stmt);
-}
-
-function insertCountry($db, $country_name) {
-    $stmt = $db->prepare("INSERT INTO countries (country_name) VALUES (:country_name)");
-
-    $stmt->bindParam(':country_name', $country_name, PDO::PARAM_STR);
-
-    return processStatement($stmt);
-}
-
-function boundCountry($db, $country_id, $laureate_id) {
-    $stmt = $db->prepare("INSERT INTO laureates_countries (country_id, laureate_id) VALUES (:country_id, :laureate_id)");
-
-    $stmt->bindParam(':country_id', $country_id, PDO::PARAM_INT);
-    $stmt->bindParam(':laureate_id', $laureate_id, PDO::PARAM_INT);
-
-    return processStatement($stmt);
-}
-
-function getLaureatesWithCountry($db) {
-    $stmt = $db->prepare("
-    SELECT laureates.fullname, laureates.sex, laureates.birth_year, laureates.death_year, countries.country_name 
-    FROM laureates 
-    LEFT JOIN laureates_countries 
-        INNER JOIN countries
-        ON laureates_countries.country_id = countries.id
-    ON laureates.id = laureates_countries.laureate_id");
-
-    $stmt->execute();
-
-    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    return $result;
-}
-
-function insertPrize($db, $year, $category, $contrib_sk, $contrib_en) {
-    $stmt = $db->prepare("INSERT INTO prisez (year, category, contrib_sk, contrib_en) VALUES (:year, :category, :contrib_sk, :contrib_en)");
-
-    $stmt->bindParam(':year', $year, PDO::PARAM_INT);
-    $stmt->bindParam(':category', $category, PDO::PARAM_STR);
-    $stmt->bindParam(':contrib_sk', $contrib_sk, PDO::PARAM_STR);
-    $stmt->bindParam(':contrib_en', $contrib_en, PDO::PARAM_STR);
-
-    if ($stmt->execute()) {
-        return $db->lastInsertId();  // Vracia ID vloženej ceny
-    } else {
-        return "Error: " . $stmt->errorInfo();
-    }
-}
-
-function insertLaureateWithCountry($db, $name, $surname, $organisation, $sex, $birth_year, $death_year, $country_name) {
-    $db->beginTransaction();
-
-    $status = insertLaureate($db, $name, $surname, $organisation, $sex, $birth_year, $death_year);
-
-    if (strpos($status, "Error") !== false) {
-        $db->rollBack();
-        return $status;
-    }
-
-    $laureate_id = $db->lastInsertId();
-
-    // Check if the country already exists
-    $stmt = $db->prepare("SELECT id FROM countries WHERE country_name = :country_name");
-    $stmt->bindParam(':country_name', $country_name, PDO::PARAM_STR);
-    $stmt->execute();
-    $country = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if ($country) {
-        $country_id = $country['id'];
-    } else {
-        $status = insertCountry($db, $country_name);
-
-        if (strpos($status, "Error") !== false) {
-            $db->rollBack();
-            return $status;
+    <!--<style>
+        html {
+            max-width: 70ch;
+            padding: 3em 1em;
+            margin: auto;
+            line-height: 1.75;
+            font-size: 1.25em;
         }
+        h1,h2,h3,h4,h5,h6 {
+            margin: 3em 0 1em;
+        }
+        p,ul,ol {
+            margin-bottom: 2em;
+            color: #1d1d1d;
+            font-family: sans-serif;
+        }
+        span, .err {
+            color: red;
+        }
+    </style>-->
+</head>
 
-        $country_id = $db->lastInsertId();
-    }
+<body>
+<nav class="navbar navbar-expand-lg sticky-top navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand mb-0 h1">Laureáti Nobelovej Ceny</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup"
+                aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
-    $status = boundCountry($db, $country_id, $laureate_id);
+        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+            <div class="navbar-nav me-auto">
 
-    if (strpos($status, "Error") !== false) {
-        $db->rollBack();
-        return $status;
-    }
+            </div>
 
-    $db->commit();
 
-    return $status;
-}
+            <div class="d-flex ms-auto">
+                <?php if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true): ?>
+                    <a class="btn btn-outline-light me-2" href="login.php">Prihlásiť sa</a>
+                    <a class="btn btn-light" href="register.php">Zaregistrovať sa</a>
+                <?php else: ?>
+                    <span class="navbar-text text-white me-3">Vitaj <?= htmlspecialchars($_SESSION['fullname']) ?></span>
+                    <a class="btn btn-outline-light me-2" href="restricted.php">Môj profil</a>
+                    <a class="btn btn-light" href="logout.php">Odhlásiť sa</a>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+</nav>
 
-$status = insertLaureateWithCountry($db, "Peter", "Doe", NULL, "M", "1977", "2022", "Germany");
 
-$result = getLaureatesWithCountry($db);
-echo "<pre>";
-print_r($result);
-echo "</pre>";
+<main>
 
-//$status = insertLaureate($db, "Susane", "Doe", NULL, "F", "1988", "2022");
-//$status = insertCountry($db, 'Norway');
-//$status = boundCountry($db, 1, 10);
-//echo $status;
+    <?php
+
+    session_start();
+
+    $config = require_once('config.php');
+    $db = connectDatabase($config['hostname'], $config['database'], $config['username'], $config['password']);
+
+    $sql = "SELECT l.fullname, l.organisation, l.birth_year, l.death_year, p.year, p.category 
+        FROM laureates l 
+        JOIN laureates_prizes lp ON l.id = lp.laureates_id 
+        JOIN prizes p ON lp.prize_id = p.id";
+
+    $result = $db->query($sql);
+    ?>
+
+    <table id="laureates" class="display">
+        <thead>
+        <tr>
+            <th>Meno</th>
+            <th>Organizácia</th>
+            <th>Rok narodenia</th>
+            <th>Rok úmrtia</th>
+            <th>Rok ceny</th>
+            <th>Kategória</th>
+        </tr>
+        </thead>
+        <tbody>
+        <?php
+        while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
+            echo "<tr>";
+            echo "<td>{$row['fullname']}</td>";
+            echo "<td>{$row['organisation']}</td>";
+            echo "<td>{$row['birth_year']}</td>";
+            echo "<td>{$row['death_year']}</td>";
+            echo "<td>{$row['year']}</td>";
+            echo "<td>{$row['category']}</td>";
+            echo "</tr>";
+        }
+        ?>
+        </tbody>
+    </table>
+</main>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/2.2.2/js/dataTables.min.js"></script>
+<script src="script/bootstrap.bundle.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('#laureates').DataTable({
+            pageLength: 20,
+            lengthMenu: [ [20, 50, 100, -1], [20, 50, 100, "Všetko"] ],
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/sk.json' // slovenský preklad
+            }
+        });
+    });
+</script>
+
+</body>
+<footer>
+
+</footer>
+
+</html>
