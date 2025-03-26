@@ -7,6 +7,7 @@ $config = require_once('config.php');
 $db = connectDatabase($config['hostname'], $config['database'], $config['username'], $config['password']);
 
 use Google\Client;
+use Google\Service\Oauth2; // Pridaj správny use statement
 
 $client = new Client();
 
@@ -61,6 +62,39 @@ if (isset($_GET['code'])) {
     $_SESSION['loggedin'] = true;  // User is logged in / authenticated - set custom session variable.
 
     // TODO: Implement a mechanism to save login information - user_id, login_type, email, fullname - to database.
+    // Get user info
+    $oauth2 = new Oauth2($client); // Správna trieda
+    $userinfo = $oauth2->userinfo->get();
+    $email = $userinfo->getEmail();
+    $fullname = $userinfo->getName();
+
+    $_SESSION['email'] = $email;
+    $_SESSION['fullname'] = $fullname;
+
+    // Find user_id in users table
+    $stmt = $db->prepare("SELECT id FROM users WHERE email = :email");
+    $stmt->bindParam(':email', $email, PDO::PARAM_STR);
+    $stmt->execute();
+
+    if ($stmt->rowCount() === 1) {
+        $user = $stmt->fetch();
+        $user_id = $user['id'];
+
+        // Save login to users_login
+        $login_type = 'google';
+        $login_time = date("Y-m-d H:i:s");
+
+        $insert = $db->prepare("INSERT INTO users_login (user_id, email, fullname, login_type, login_time) VALUES (:user_id, :email, :fullname, :login_type, :login_time)");
+        $insert->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+        $insert->bindParam(':email', $email, PDO::PARAM_STR);
+        $insert->bindParam(':fullname', $fullname, PDO::PARAM_STR);
+        $insert->bindParam(':login_type', $login_type, PDO::PARAM_STR);  // Pridaný parametre login_type
+        $insert->bindParam(':login_time', $login_time, PDO::PARAM_STR);
+        $insert->execute();
+    } else {
+        // Optional: ak user neexistuje, môžeš ho vytvoriť v users
+        die("Používateľ s týmto emailom nie je zaregistrovaný.");
+    }
 
     $redirect_uri = 'https://node74.webte.fei.stuba.sk/z1/restricted.php'; // Redirect to the restricted page or dashboard.
     header('Location: ' . filter_var($redirect_uri, FILTER_SANITIZE_URL));
@@ -69,3 +103,4 @@ if (isset($_GET['code'])) {
 if (isset($_GET['error'])) {
     echo "Error: " . $_GET['error'];
 }
+?>

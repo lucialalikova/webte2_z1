@@ -52,8 +52,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $_SESSION["email"] = $row['email'];
                     $_SESSION["created_at"] = $row['created_at'];
 
-                    // Redirect user to restricted page.
+                    // Získame user_id z DB
+                    $user_id = $row['id'];
+                    $login_type = 'local'; // vlastné prihlásenie
+                    $email = $row['email'];
+                    $fullname = $row['fullname'];
+                    $login_time = date('Y-m-d H:i:s');
+
+                    $insertSql = "INSERT INTO users_login (user_id, login_type, email, fullname, login_time) 
+              VALUES (:user_id, :login_type, :email, :fullname, :login_time)";
+                    $insertStmt = $db->prepare($insertSql);
+                    $insertStmt->execute([
+                        ':user_id' => $user_id,
+                        ':login_type' => $login_type,
+                        ':email' => $email,
+                        ':fullname' => $fullname,
+                        ':login_time' => $login_time
+                    ]);
+
+// Presmerovanie
                     header("location: restricted.php");
+                    exit;
                 }
                 else {
                     $errors = "Neplatný kod 2FA.";
@@ -85,7 +104,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <link rel="stylesheet" href="styles/styles.css">
     <title>Prihlásenie</title>
 
-    <style>
+  <!--  <style>
         html {
             max-width: 70ch;
             padding: 3em 1em;
@@ -103,56 +122,62 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             color: #1d1d1d;
             font-family: sans-serif;
         }
-    </style>
+    </style>-->
 </head>
 <body>
-<header>
-    <hgroup>
-        <h1>Prihlásenie</h1>
-        <h2>Prihlasenie registrovaného používateľa</h2>
-    </hgroup>
-</header>
-<main>
-    <?php if (isset($errors)) {
-        echo "<strong style='color: red'>$errors</strong>";
-    } ?>
+<nav class="navbar navbar-expand-lg sticky-top navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">Laureáti Nobelovej Ceny</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup"
+                aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
-    <?php if (!empty($login_msg)): ?>
-        <div class="alert alert-warning" role="alert">
-            <?= htmlspecialchars($login_msg) ?>
+        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+            <div class="navbar-nav me-auto">
+                <a class="nav-link" href="index.php">Domov</a>
+            </div>
+            <div class="d-flex ms-auto"></div>
         </div>
-    <?php endif; ?>
+    </div>
+</nav>
+<main>
+    <div class="container mt-5" style="max-width: 500px;">
+        <?php if (!empty($errors)): ?>
+            <div class="alert alert-danger"><?= htmlspecialchars($errors) ?></div>
+        <?php endif; ?>
 
+        <?php if (!empty($login_msg)): ?>
+            <div class="alert alert-warning"><?= htmlspecialchars($login_msg) ?></div>
+        <?php endif; ?>
 
-    <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="post">
+        <h2 class="mb-4 text-center">Prihlásenie do účtu</h2>
+        <form action="<?= htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="post">
+            <div class="mb-3">
+                <label for="email" class="form-label">E-Mail:</label>
+                <input type="text" name="email" id="email" class="form-control" required>
+            </div>
 
-        <label for="email">
-            E-Mail:
-            <input type="text" name="email" value="" id="email" required>
-        </label>
-        <br>
-        <label for="password">
-            Heslo:
-            <input type="password" name="password" value="" id="password" required>
-        </label>
-        <br>
+            <div class="mb-3">
+                <label for="password" class="form-label">Heslo:</label>
+                <input type="password" name="password" id="password" class="form-control" required>
+            </div>
 
-        <!-- TODO: Use JavaScript to hide/show the 2FA field after successfull password enter,
-                   and only after completing the 2FA code, the user is logged in. -->
+            <div class="mb-3">
+                <label for="2fa" class="form-label">2FA kód:</label>
+                <input type="number" name="2fa" id="2fa" class="form-control" required>
+            </div>
 
-        <label for="2fa">
-            2FA kód:
-            <input type="number" name="2fa" value="" id="2fa" required>
-        </label>
+            <button type="submit" class="btn btn-primary w-100">Prihlásiť sa</button>
 
-        <button type="submit">Prihlásiť sa</button>
-        <br>
-        <p>Alebo sa prihláste pomocou <a href="<?php echo filter_var($redirect_uri, FILTER_SANITIZE_URL) ?>">Google konta</a></p>
+            <p class="mt-4 text-center">Nemáte účet? <a href="register.php">Zaregistrujte sa tu</a></p>
 
-        <!-- TODO: Create a "I forgot password"/"Reset my password" option -->
-
-    </form>
-    <p>Nemáte vytvorené konto? <a href="register.php">Zaregistrujte sa tu.</a></p>
+            <p class="mt-3 text-center">
+                Alebo sa prihláste pomocou <a href="<?= htmlspecialchars($redirect_uri) ?>">Google konta</a>
+            </p>
+        </form>
+    </div>
 </main>
+<script src="script/bootstrap.bundle.min.js"></script>
 </body>
 </html>
