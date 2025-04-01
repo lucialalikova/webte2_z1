@@ -1,4 +1,3 @@
-// Fetch API a inicializácia tabuľky
 async function fetchLaureates() {
     try {
         const response = await fetch('/z1/z2/api/v0/laureates');
@@ -21,21 +20,33 @@ async function fetchLaureates() {
             const birth_year = laureate.birth_year != 0 ? laureate.birth_year : 'Not known';
             const death_year = laureate.death_year != 0 ? laureate.death_year : 'Still alive';
 
-            const prizesInfo = laureate.prizes && laureate.prizes.length > 0
-                ? laureate.prizes.map(p => `${p.year} (${p.category})`).join("<br>")
-                : "Neznáme";
-
-            const tableRow = `<tr style='background-color: #f2d1e1;'>
-                <td>${prizesInfo}</td>
-                <td>${laureate.fullname ?? laureate.organisation}</td>
-                <td>${sex}</td>
-                <td>${laureate.countries}</td>
-                <td>${birth_year}</td>
-                <td>${death_year}</td>
-                <td>${laureate.prizes?.map(p => p.category).join(", ") || 'Neznáma'}</td>
-            </tr>`;
-
-            tableBody.append(tableRow);
+            // Ak laureát má viacero cien, vytvoríme viac riadkov
+            if (laureate.prizes && laureate.prizes.length > 0) {
+                laureate.prizes.forEach(prize => {
+                    const tableRow = `<tr style='background-color: #f2d1e1;'>
+                        <td>${prize.year}</td>
+                        <td>${laureate.fullname ?? laureate.organisation}</td>
+                        <td>${sex}</td>
+                        <td>${laureate.countries}</td>
+                        <td>${birth_year}</td>
+                        <td>${death_year}</td>
+                        <td>${prize.category}</td>
+                    </tr>`;
+                    tableBody.append(tableRow);
+                });
+            } else {
+                // Ak laureát nemá cenu (nemalo by sa stať, ale pre istotu)
+                const tableRow = `<tr style='background-color: #f2d1e1;'>
+                    <td>Neznámy</td>
+                    <td>${laureate.fullname ?? laureate.organisation}</td>
+                    <td>${sex}</td>
+                    <td>${laureate.countries}</td>
+                    <td>${birth_year}</td>
+                    <td>${death_year}</td>
+                    <td>Neznáma</td>
+                </tr>`;
+                tableBody.append(tableRow);
+            }
         });
 
         // Znič starú tabuľku a inicializuj znova
