@@ -84,9 +84,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Ak je staré heslo správne, aktualizujte nové heslo
             $stmt = $db->prepare("UPDATE users SET password = ? WHERE id = ?");
             $stmt->execute([$new_password, $_SESSION['id']]);
-            echo "Heslo bolo úspešne zmenené.";
+            $password_message = "Heslo bolo úspešne zmenené."; // Success message
         } else {
-            echo "Staré heslo je nesprávne.";
+            $password_message = "Staré heslo je nesprávne."; // Error message for incorrect old password
         }
     }
 }
@@ -140,14 +140,14 @@ $login_history = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <body>
 <nav class="navbar navbar-expand-lg sticky-top navbar-dark bg-dark">
     <div class="container-fluid">
-        <a class="navbar-brand mb-0 h1">Laureáti Nobelovej Ceny</a>
+        <a class="navbar-brand mb-0 h1">NOBELOVÁ CENA</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
 
         <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
             <div class="navbar-nav me-auto">
-                <a class="nav-link" href="index.php">Domov</a>
+                <a class="nav-link" href="index.php">Laureáti</a>
             </div>
 
             <div class="d-flex ms-auto">
@@ -164,56 +164,69 @@ $login_history = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </nav>
 
 <main>
-    <div class="container py-5">
-        <h3 class="mb-4">Vitaj, <?= htmlspecialchars($_SESSION['fullname']) ?></h3>
-        <p><strong>E-mail:</strong> <?= htmlspecialchars($_SESSION['email']) ?></p>
+    <div class="container py-5 mt-5 mb-5" style="background-color: #f2d1e1; border-radius: 10px; border: 2px solid #001f3d; max-width: 800px;">
+        <h3 class="mb-4" style="color: #001f3d;">Vitaj, <?= htmlspecialchars($_SESSION['fullname']) ?></h3>
 
         <?php if (isset($_SESSION['gid'])): ?>
             <p><strong>Si prihlásený cez Google účet, ID:</strong> <?= htmlspecialchars($_SESSION['gid']) ?></p>
         <?php else: ?>
-            <p><strong>Si prihlásený cez lokálne údaje.</strong></p>
+            <p><strong>Si prihlásený cez lokálne konto.</strong></p>
         <?php endif; ?>
+
+        <p><strong>E-mail:</strong> <?= htmlspecialchars($_SESSION['email']) ?></p>
 
         <?php if (isset($message)): ?>
-            <div class="alert alert-info mt-3"><?= $message ?></div>
+            <div class="alert alert-info mt-3" style="background-color: #d1e7dd; border-color: #badbcc; color: #0f5132;">
+                <?= $message ?>
+            </div>
         <?php endif; ?>
 
-        <hr>
+        <hr style="border-color: #001f3d;">
 
         <div class="row g-4">
             <div class="col-md-6">
-                <h4>Zmeniť meno</h4>
+                <h4 style="color: #001f3d;">Zmeniť meno</h4>
                 <form method="POST">
                     <div class="mb-3">
-                        <label for="fullname" class="form-label">Meno</label>
-                        <input type="text" class="form-control" id="fullname" name="fullname" value="<?= htmlspecialchars($_SESSION['fullname']) ?>" required>
+                        <label for="fullname" class="form-label" style="color: #001f3d;">Meno</label>
+                        <input type="text" class="form-control" id="fullname" name="fullname" value="<?= htmlspecialchars($_SESSION['fullname']) ?>" required style="border-color: #001f3d;">
                     </div>
-                    <button type="submit" class="btn btn-primary">Zmeniť meno</button>
+                    <button type="submit" class="btn btn-primary" style="background-color: #001f3d; border-color: #001f3d;">Zmeniť meno</button>
                 </form>
             </div>
 
-            <div class="col-md-6">
-                <h4>Zmeniť heslo</h4>
-                <form method="POST">
-                    <div class="mb-3">
-                        <label for="old_password" class="form-label">Staré heslo</label>
-                        <input type="password" class="form-control" id="old_password" name="old_password" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="new_password" class="form-label">Nové heslo</label>
-                        <input type="password" class="form-control" id="new_password" name="new_password" required>
-                    </div>
-                    <button type="submit" class="btn btn-warning">Zmeniť heslo</button>
-                </form>
-            </div>
+
+            <?php if (!isset($_SESSION['gid'])): // Skrytí sekcie zmeny hesla, ak je používateľ prihlásený cez Google ?>
+                <div class="col-md-6">
+                    <h4 style="color: #001f3d;">Zmeniť heslo</h4>
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="old_password" class="form-label" style="color: #001f3d;">Staré heslo</label>
+                            <input type="password" class="form-control" id="old_password" name="old_password" required style="border-color: #001f3d;">
+                        </div>
+                        <div class="mb-3">
+                            <label for="new_password" class="form-label" style="color: #001f3d;">Nové heslo</label>
+                            <input type="password" class="form-control" id="new_password" name="new_password" required style="border-color: #001f3d;">
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="background-color: #001f3d; border-color: #001f3d">Zmeniť heslo</button>
+                    </form>
+
+                    <?php if (isset($password_message)): ?>
+                        <div class="alert alert-danger mt-3" style="background-color: #f8d7da; color: #721c24; border-color: #f5c6cb;">
+                            <?= htmlspecialchars($password_message) ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
         </div>
 
-        <hr>
 
-        <h4 class="mt-4">História prihlásení</h4>
+            <hr style="border-color: #001f3d;">
+
+        <h4 class="mt-4" style="color: #001f3d;">História prihlásení</h4>
         <div class="table-responsive mt-3">
-            <table id="loginTable" class="table table-bordered table-striped">
-                <thead>
+            <table id="loginTable" class="table table-bordered table-striped table-hover">
+                <thead class="table-dark">
                 <tr>
                     <th>Čas prihlásenia</th>
                 </tr>
@@ -221,57 +234,23 @@ $login_history = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <tbody>
                 <?php foreach ($login_history as $login): ?>
                     <tr>
-                        <td><?= htmlspecialchars($login['login_time']) ?></td>
+                        <td class="text-center"><?= htmlspecialchars($login['login_time']) ?></td>
                     </tr>
                 <?php endforeach; ?>
                 </tbody>
             </table>
         </div>
 
-        <a href="index.php" class="btn btn-secondary mt-4">Späť na úvodnú stránku</a>
+
+        <a href="index.php" class="btn btn-secondary mt-4 " style="background-color: #001f3d; border-color: #001f3d; color: white;">Späť na úvodnú stránku</a>
     </div>
 </main>
+
 <script src="script/bootstrap.bundle.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-<script>
-    $(document).ready(function() {
-        $('#loginTable').DataTable({
-            searching: false,       // zakáže vyhľadávanie
-            lengthChange: false,
-            info: false,
-            language: {
-                url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/sk.json'
-            }
-        });
-    });
-</script>
-<script>
-    function setCookie(name, value, days) {
-        const d = new Date();
-        d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
-        document.cookie = `${name}=${value};expires=${d.toUTCString()};path=/`;
-    }
-
-    function getCookie(name) {
-        const value = `; ${document.cookie}`;
-        const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop().split(';').shift();
-    }
-
-    document.addEventListener("DOMContentLoaded", function () {
-        if (!getCookie("cookie_consent")) {
-            const banner = document.getElementById("cookieConsent");
-            banner.classList.remove("d-none");
-
-            document.getElementById("acceptCookies").addEventListener("click", function () {
-                setCookie("cookie_consent", "accepted", 365);
-                banner.classList.add("d-none");
-            });
-        }
-    });
-</script>
+<script src="script/restricted.js"></script>
 </body>
 
 </html>

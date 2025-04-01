@@ -87,14 +87,14 @@ function sort_link($column, $label) {
 <body>
 <nav class="navbar navbar-expand-lg sticky-top navbar-dark bg-dark">
     <div class="container-fluid">
-        <a class="navbar-brand mb-0 h1">Laureáti Nobelovej Ceny</a>
+        <a class="navbar-brand mb-0 h1">NOBELOVÁ CENA</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
 
         <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
             <div class="navbar-nav me-auto">
-                <a class="nav-link active">Domov</a>
+                <a class="nav-link active">Laureáti</a>
             </div>
 
             <div class="d-flex ms-auto">
@@ -112,12 +112,12 @@ function sort_link($column, $label) {
 </nav>
 
 <main class="container mt-4">
-    <h2>Zoznam laureátov Nobelovej ceny</h2>
+    <h2 class="text-center mb-4 text-uppercase">Zoznam laureátov Nobelovej ceny</h2>
 
     <!-- FILTER FORM -->
-    <form method="GET" class="row g-3 mb-4">
-        <div class="col-md-4">
-            <label for="year" class="form-label">Filtrovať podľa roku:</label>
+    <form method="GET" class="row align-items-start" style="background-color: #f2d1e1; border: 2px solid #001f3d; border-radius: 10px; padding: 20px;">
+        <div class="col m-3">
+            <label for="year" class="form-label text-dark">Filtrovať podľa roku:</label>
             <select name="year" id="year" class="form-select" onchange="this.form.submit()">
                 <option value="">-- všetky --</option>
                 <?php foreach ($years as $year): ?>
@@ -125,8 +125,8 @@ function sort_link($column, $label) {
                 <?php endforeach; ?>
             </select>
         </div>
-        <div class="col-md-4">
-            <label for="category" class="form-label">Filtrovať podľa kategórie:</label>
+        <div class="col m-3">
+            <label for="category" class="form-label text-dark">Filtrovať podľa kategórie:</label>
             <select name="category" id="category" class="form-select" onchange="this.form.submit()">
                 <option value="">-- všetky --</option>
                 <?php foreach ($categories as $cat): ?>
@@ -137,72 +137,65 @@ function sort_link($column, $label) {
     </form>
 
     <!-- TABLE -->
-    <table id="laureates" class="display table table-striped table-bordered">
-        <thead>
-        <tr>
-            <?php if (empty($filter_year)): ?>
-                <th>Rok udelenia ceny</th>
-            <?php endif; ?>
-            <th>Meno / Organizácia</th>
-            <th>Pohlavie</th>
-            <th>Krajina</th>
-            <th>Rok narodenia</th>
-            <th>Rok úmrtia</th>
-            <?php if (empty($filter_category)): ?>
-                <th>Kategória</th>
-            <?php endif; ?>
-        </tr>
-        </thead>
-        <tbody>
-        <?php
-        foreach ($rows as $row) {
-            $sex = ($row['sex'] === 'F') ? 'Žena' : (($row['sex'] === 'M') ? 'Muž' : '');
+    <div class="table-responsive">
+        <table id="laureates" class="display table table-striped table-bordered" style="border: 2px solid #001f3d; background-color: #f2d1e1;">
+            <thead>
+            <tr style="background-color: #001f3d; color: white;">
+                <?php if (empty($filter_year)): ?>
+                    <th>Rok udelenia ceny</th>
+                <?php endif; ?>
+                <th>Meno / Organizácia</th>
+                <th>Pohlavie</th>
+                <th>Krajina</th>
+                <th>Rok narodenia</th>
+                <th>Rok úmrtia</th>
+                <?php if (empty($filter_category)): ?>
+                    <th>Kategória</th>
+                <?php endif; ?>
+            </tr>
+            </thead>
+            <tbody>
+            <?php
+            foreach ($rows as $row) {
+                $sex = ($row['sex'] === 'F') ? 'Žena' : (($row['sex'] === 'M') ? 'Muž' : '');
 
-            $birthYear = ($row['birth_year'] != 0) ? $row['birth_year'] : '';
-            $deathYear = ($row['death_year'] != 0) ? $row['death_year'] : '';
+                $birthYear = ($row['birth_year'] != 0) ? $row['birth_year'] : '';
+                $deathYear = ($row['death_year'] != 0) ? $row['death_year'] : '';
 
-            echo "<tr>";
-            if (empty($filter_year)) {
-                echo "<td>{$row['year']}</td>";
+                echo "<tr style='background-color: #f2d1e1;'>";
+                if (empty($filter_year)) {
+                    echo "<td>{$row['year']}</td>";
+                }
+
+                echo "<td>";
+                if (!empty($row['fullname'])) {
+                    echo "<a href='detail.php?id={$row['id']}' style='color: #001f3d;'>" . htmlspecialchars($row['fullname']) . "</a>";
+                } else {
+                    echo "<a href='detail.php?id={$row['id']}' style='color: #001f3d;'>" . htmlspecialchars($row['organisation']) . "</a>";
+                }
+                echo "</td>";
+
+                echo "<td>{$sex}</td>";
+                echo "<td>{$row['countries']}</td>";
+                echo "<td>{$birthYear}</td>";
+                echo "<td>{$deathYear}</td>";
+
+                if (empty($filter_category)) {
+                    echo "<td>{$row['category']}</td>";
+                }
+
+                echo "</tr>";
             }
-
-            echo "<td>";
-            if (!empty($row['fullname'])) {
-                echo "<a href='detail.php?id={$row['id']}'>" . htmlspecialchars($row['fullname']) . "</a>";
-            } else {
-                echo "<a href='detail.php?id={$row['id']}'>" . htmlspecialchars($row['organisation']) . "</a>";
-            }
-            echo "</td>";
-
-            echo "<td>{$sex}</td>";
-            echo "<td>{$row['countries']}</td>";
-            echo "<td>{$birthYear}</td>";
-            echo "<td>{$deathYear}</td>";
-
-            if (empty($filter_category)) {
-                echo "<td>{$row['category']}</td>";
-            }
-
-            echo "</tr>";
-        }
-        ?>
-        </tbody>
-    </table>
+            ?>
+            </tbody>
+        </table>
+    </div>
 </main>
+
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.datatables.net/2.2.2/js/dataTables.min.js"></script>
 <script src="script/bootstrap.bundle.min.js"></script>
-<script>
-    $(document).ready(function () {
-        $('#laureates').DataTable({
-            pageLength: 10,
-            lengthMenu: [[10, 15, 20], [10, 15, 20]],
-            language: {
-                url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/sk.json'
-            }
-        });
-    });
-</script>
+<script src="script/script.js"></script>
 </body>
 </html>

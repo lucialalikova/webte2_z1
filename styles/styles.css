@@ -134,3 +134,10 @@ h1{
     border-color: rgba(107, 96, 182, 0.47);
 }
 
+.text-uppercase {
+    text-transform: uppercase;
+}
+
+.table-responsive {
+    overflow-x: auto;
+}

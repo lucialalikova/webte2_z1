@@ -127,7 +127,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <body>
 <nav class="navbar navbar-expand-lg sticky-top navbar-dark bg-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="#">Laureáti Nobelovej Ceny</a>
+        <a class="navbar-brand" href="#">NOBELOVÁ CENA</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup"
                 aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -135,45 +135,49 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
             <div class="navbar-nav me-auto">
-                <a class="nav-link" href="index.php">Domov</a>
+                <a class="nav-link" href="index.php">Laureáti</a>
             </div>
             <div class="d-flex ms-auto"></div>
         </div>
     </div>
 </nav>
 <main>
-    <div class="container mt-5" style="max-width: 500px;">
+    <div class="container mt-5" style="max-width: 500px; background-color: #f2d1e1; border: 2px solid #001f3d; border-radius: 10px; padding: 30px;">
         <?php if (!empty($errors)): ?>
-            <div class="alert alert-danger"><?= htmlspecialchars($errors) ?></div>
+            <div class="alert alert-danger" style="background-color: #ffdddd; border: 1px solid #ff4444; color: #990000;">
+                <?= htmlspecialchars($errors) ?>
+            </div>
         <?php endif; ?>
 
         <?php if (!empty($login_msg)): ?>
-            <div class="alert alert-warning"><?= htmlspecialchars($login_msg) ?></div>
+            <div class="alert alert-warning" style="background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404;">
+                <?= htmlspecialchars($login_msg) ?>
+            </div>
         <?php endif; ?>
 
-        <h2 class="mb-4 text-center">Prihlásenie do účtu</h2>
+        <h2 class="mb-4 text-center text-uppercase" style="color: #001f3d;">Prihlásenie do účtu</h2>
         <form action="<?= htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="post">
             <div class="mb-3">
-                <label for="email" class="form-label">E-Mail:</label>
-                <input type="text" name="email" id="email" class="form-control" required>
+                <label for="email" class="form-label" style="color: #001f3d;">E-Mail:</label>
+                <input type="text" name="email" id="email" class="form-control" required style="border-color: #001f3d;">
             </div>
 
             <div class="mb-3">
-                <label for="password" class="form-label">Heslo:</label>
-                <input type="password" name="password" id="password" class="form-control" required>
+                <label for="password" class="form-label" style="color: #001f3d;">Heslo:</label>
+                <input type="password" name="password" id="password" class="form-control" required style="border-color: #001f3d;">
             </div>
 
             <div class="mb-3">
-                <label for="2fa" class="form-label">2FA kód:</label>
-                <input type="number" name="2fa" id="2fa" class="form-control" required>
+                <label for="2fa" class="form-label" style="color: #001f3d;">2FA kód:</label>
+                <input type="number" name="2fa" id="2fa" class="form-control" required style="border-color: #001f3d;">
             </div>
 
-            <button type="submit" class="btn btn-primary w-100">Prihlásiť sa</button>
+            <button type="submit" class="btn btn-primary w-100" style="background-color: #001f3d; border-color: #001f3d;">Prihlásiť sa</button>
 
-            <p class="mt-4 text-center">Nemáte účet? <a href="register.php">Zaregistrujte sa tu</a></p>
+            <p class="mt-4 text-center" style="color: #001f3d;">Nemáte účet? <a href="register.php" style="color: #001f3d;">Zaregistrujte sa tu</a></p>
 
-            <p class="mt-3 text-center">
-                Alebo sa prihláste pomocou <a href="<?= htmlspecialchars($redirect_uri) ?>">Google konta</a>
+            <p class="mt-3 text-center" style="color: #001f3d;">
+                Alebo sa prihláste pomocou <a href="<?= htmlspecialchars($redirect_uri) ?>" style="color: #001f3d;">Google konta</a>
             </p>
         </form>
     </div>

@@ -128,7 +128,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <body>
 <nav class="navbar navbar-expand-lg sticky-top navbar-dark bg-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="#">Laureáti Nobelovej Ceny</a>
+        <a class="navbar-brand" href="#">NOBELOVÁ CENA</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup"
                 aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -136,60 +136,65 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
             <div class="navbar-nav">
-                <a class="nav-link" href="index.php">Domov</a>
+                <a class="nav-link" href="index.php">Laureáti</a>
             </div>
         </div>
     </div>
 </nav>
 
-<div class="container mt-5" style="max-width: 500px;">
-    <h2 class="mb-4 text-center">Vytvorenie nového používateľského konta</h2>
+<main>
+    <div class="container mt-5" style="max-width: 500px; background-color: #f2d1e1; border: 2px solid #001f3d; border-radius: 10px; padding: 30px;">
+        <h2 class="mb-4 text-center text-uppercase" style="color: #001f3d;">Vytvorenie nového používateľského konta</h2>
 
-    <?php if (isset($reg_status)): ?>
-        <div class="alert alert-info"><?= htmlspecialchars($reg_status) ?></div>
-    <?php endif; ?>
+        <?php if (isset($reg_status)): ?>
+            <div class="alert alert-info" style="background-color: #d1e7dd; border-color: #badbcc; color: #0f5132;">
+                <?= htmlspecialchars($reg_status) ?>
+            </div>
+        <?php endif; ?>
 
-    <form action="<?= htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="post">
-        <div class="mb-3">
-            <label for="firstname" class="form-label">Meno:</label>
-            <input type="text" name="firstname" id="firstname" class="form-control" placeholder="napr. John" required>
-        </div>
+        <form action="<?= htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="post">
+            <div class="mb-3">
+                <label for="firstname" class="form-label" style="color: #001f3d;">Meno:</label>
+                <input type="text" name="firstname" id="firstname" class="form-control" placeholder="napr. John" required style="border-color: #001f3d;">
+            </div>
 
-        <div class="mb-3">
-            <label for="lastname" class="form-label">Priezvisko:</label>
-            <input type="text" name="lastname" id="lastname" class="form-control" placeholder="napr. Doe" required>
-        </div>
+            <div class="mb-3">
+                <label for="lastname" class="form-label" style="color: #001f3d;">Priezvisko:</label>
+                <input type="text" name="lastname" id="lastname" class="form-control" placeholder="napr. Doe" required style="border-color: #001f3d;">
+            </div>
 
-        <div class="mb-3">
-            <label for="email" class="form-label">E-mail:</label>
-            <input type="email" name="email" id="email" class="form-control" placeholder="napr. johndoe@example.com" required>
-        </div>
+            <div class="mb-3">
+                <label for="email" class="form-label" style="color: #001f3d;">E-mail:</label>
+                <input type="email" name="email" id="email" class="form-control" placeholder="napr. johndoe@example.com" required style="border-color: #001f3d;">
+            </div>
 
-        <div class="mb-3">
-            <label for="password" class="form-label">Heslo:</label>
-            <input type="password" name="password" id="password" class="form-control" required>
-        </div>
+            <div class="mb-3">
+                <label for="password" class="form-label" style="color: #001f3d;">Heslo:</label>
+                <input type="password" name="password" id="password" class="form-control" required style="border-color: #001f3d;">
+            </div>
 
-        <button type="submit" class="btn btn-primary w-100">Vytvoriť konto</button>
-    </form>
+            <button type="submit" class="btn btn-primary w-100" style="background-color: #001f3d; border-color: #001f3d;">Vytvoriť konto</button>
+        </form>
 
-    <?php if (!empty($errors)): ?>
-        <div class="alert alert-danger mt-3">
-            <strong>Chyby:</strong><br>
-            <?= nl2br(htmlspecialchars($errors)); ?>
-        </div>
-    <?php endif; ?>
+        <?php if (!empty($errors)): ?>
+            <div class="alert alert-danger mt-3" style="background-color: #ffdddd; border: 1px solid #ff4444; color: #990000;">
+                <strong>Chyby:</strong><br>
+                <?= nl2br(htmlspecialchars($errors)); ?>
+            </div>
+        <?php endif; ?>
 
-    <?php if (isset($qr_code)): ?>
-        <div class="alert alert-success mt-3">
-            <p>Zadajte kód: <?= htmlspecialchars($user_secret); ?> do aplikácie pre 2FA</p>
-            <p>alebo naskenujte QR kód:</p>
-            <img src="<?= htmlspecialchars($qr_code); ?>" alt="QR kód pre aplikáciu authenticator" class="img-fluid">
-        </div>
-    <?php endif; ?>
+        <?php if (isset($qr_code)): ?>
+            <div class="alert alert-success mt-3" style="background-color: #d1e7dd; border: 1px solid #badbcc; color: #0f5132;">
+                <p>Zadajte kód: <?= htmlspecialchars($user_secret); ?> do aplikácie pre 2FA</p>
+                <p>alebo naskenujte QR kód:</p>
+                <img src="<?= htmlspecialchars($qr_code); ?>" alt="QR kód pre aplikáciu authenticator" class="img-fluid">
+            </div>
+        <?php endif; ?>
 
-    <p class="mt-4 text-center">Už máte vytvorené konto? <a href="login.php">Prihláste sa tu.</a></p>
-</div>
+        <p class="mt-4 text-center" style="color: #001f3d;">Už máte vytvorené konto? <a href="login.php" style="color: #001f3d;">Prihláste sa tu.</a></p>
+    </div>
+</main>
+
 
 <script src="script/bootstrap.bundle.min.js"></script>
 </body>
