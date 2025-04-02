@@ -9,50 +9,6 @@ class Laureate {
         $this->db = $db;
     }
 
-    public function getLaureateDetails($id) {
-        $sql = "SELECT
-            l.id,
-            l.fullname,
-            l.organisation,
-            l.sex,
-            GROUP_CONCAT(DISTINCT c.country_name ORDER BY c.country_name SEPARATOR ', ') AS countries,
-            l.birth_year,
-            l.death_year
-        FROM laureates l
-        LEFT JOIN laureates_countries lc ON l.id = lc.laureates_id
-        LEFT JOIN countries c ON lc.country_id = c.id
-        WHERE l.id = ?
-        GROUP BY l.id";
-
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([$id]);
-        $laureate = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if ($laureate) {
-            $sqlPrizes = "SELECT
-                p.year,
-                p.category,
-                p.contrib_sk,
-                p.contrib_en,
-                d.language_sk,
-                d.language_en,
-                d.genre_sk,
-                d.genre_en
-            FROM prizes p
-            JOIN laureates_prizes lp ON p.id = lp.prize_id
-            LEFT JOIN prize_details d ON p.details_id = d.id
-            WHERE lp.laureates_id = ?
-            ORDER BY p.year";
-
-            $stmtPrizes = $this->db->prepare($sqlPrizes);
-            $stmtPrizes->execute([$id]);
-            $prizes = $stmtPrizes->fetchAll(PDO::FETCH_ASSOC);
-
-            $laureate['prizes'] = $prizes;
-        }
-
-        return $laureate;
-    }
 
     // Get all records
     public function index() {
@@ -126,18 +82,50 @@ class Laureate {
         return array_values($result);
     }
 
-    // Get one record
-    public function show($id) {
-        // TODO: Implement Where caluse by fullname, organisation...
-        $stmt = $this->db->prepare("SELECT * FROM laureates WHERE id = :id");
-        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
-        try {
-            $stmt->execute();
-        } catch (PDOException $e) {
-            return "Error: " . $e->getMessage();
+    // Get one record - using in detail.php
+    public function getLaureateDetails($id) {
+        $sql = "SELECT
+            l.id,
+            l.fullname,
+            l.organisation,
+            l.sex,
+            GROUP_CONCAT(DISTINCT c.country_name ORDER BY c.country_name SEPARATOR ', ') AS countries,
+            l.birth_year,
+            l.death_year
+        FROM laureates l
+        LEFT JOIN laureates_countries lc ON l.id = lc.laureates_id
+        LEFT JOIN countries c ON lc.country_id = c.id
+        WHERE l.id = ?
+        GROUP BY l.id";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$id]);
+        $laureate = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($laureate) {
+            $sqlPrizes = "SELECT
+                p.year,
+                p.category,
+                p.contrib_sk,
+                p.contrib_en,
+                d.language_sk,
+                d.language_en,
+                d.genre_sk,
+                d.genre_en
+            FROM prizes p
+            JOIN laureates_prizes lp ON p.id = lp.prize_id
+            LEFT JOIN prize_details d ON p.details_id = d.id
+            WHERE lp.laureates_id = ?
+            ORDER BY p.year";
+
+            $stmtPrizes = $this->db->prepare($sqlPrizes);
+            $stmtPrizes->execute([$id]);
+            $prizes = $stmtPrizes->fetchAll(PDO::FETCH_ASSOC);
+
+            $laureate['prizes'] = $prizes;
         }
 
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        return $laureate;
     }
 
     // Create a new record
@@ -226,25 +214,93 @@ class Laureate {
     }
 
     // Update a record
-    public function update($id, $sex, $birth_year, $death_year, $fullname = null, $organisation = null) {
-        $stmt = $this->db->prepare("UPDATE laureates SET fullname = :fullname, organisation = :organisation, sex = :sex, birth_year = :birth_year, death_year = :death_year WHERE id = :id");
-
-        // TODO: Where clause by fullname or organisation
-
-        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
-        $stmt->bindParam(':fullname', $fullname, PDO::PARAM_STR);
-        $stmt->bindParam(':organisation', $organisation, PDO::PARAM_STR);
-        $stmt->bindParam(':sex', $sex, PDO::PARAM_STR);
-        $stmt->bindParam(':birth_year', $birth_year, PDO::PARAM_INT);
-        $stmt->bindParam(':death_year', $death_year, PDO::PARAM_INT);
-
+    public function update($id, $sex, $birth_year, $death_year, $fullname = null, $organisation = null, $countries = null, $prizes = []) {
         try {
+            $this->db->beginTransaction();
+
+            // Aktualizácia údajov v laureates
+            $stmt = $this->db->prepare("UPDATE laureates SET fullname = :fullname, organisation = :organisation, sex = :sex, birth_year = :birth_year, death_year = :death_year WHERE id = :id");
+            $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+            $stmt->bindParam(':fullname', $fullname, PDO::PARAM_STR);
+            $stmt->bindParam(':organisation', $organisation, PDO::PARAM_STR);
+            $stmt->bindParam(':sex', $sex, PDO::PARAM_STR);
+            $stmt->bindParam(':birth_year', $birth_year, PDO::PARAM_INT);
+            $stmt->bindParam(':death_year', $death_year, PDO::PARAM_INT);
             $stmt->execute();
+
+            // Aktualizácia krajiny
+            if ($countries) {
+                $stmtCountry = $this->db->prepare("SELECT id FROM countries WHERE country_name = :country_name");
+                $stmtCountry->bindParam(':country_name', $countries, PDO::PARAM_STR);
+                $stmtCountry->execute();
+                $countryId = $stmtCountry->fetchColumn();
+
+                if (!$countryId) {
+                    $stmtInsertCountry = $this->db->prepare("INSERT INTO countries (country_name) VALUES (:country_name)");
+                    $stmtInsertCountry->bindParam(':country_name', $countries, PDO::PARAM_STR);
+                    $stmtInsertCountry->execute();
+                    $countryId = $this->db->lastInsertId();
+                }
+
+                $stmtLinkCountry = $this->db->prepare("UPDATE laureates_countries SET country_id = :country_id WHERE laureates_id = :id");
+                $stmtLinkCountry->bindParam(':country_id', $countryId, PDO::PARAM_INT);
+                $stmtLinkCountry->bindParam(':id', $id, PDO::PARAM_INT);
+                $stmtLinkCountry->execute();
+            }
+
+            // Aktualizácia cien
+            foreach ($prizes as $prize) {
+                $detailsId = null;
+
+                if (!empty($prize['language_sk']) || !empty($prize['language_en']) || !empty($prize['genre_sk']) || !empty($prize['genre_en'])) {
+                    $stmtDetails = $this->db->prepare("INSERT INTO prize_details (language_sk, language_en, genre_sk, genre_en) VALUES (:language_sk, :language_en, :genre_sk, :genre_en)");
+                    $stmtDetails->bindParam(':language_sk', $prize['language_sk'], PDO::PARAM_STR);
+                    $stmtDetails->bindParam(':language_en', $prize['language_en'], PDO::PARAM_STR);
+                    $stmtDetails->bindParam(':genre_sk', $prize['genre_sk'], PDO::PARAM_STR);
+                    $stmtDetails->bindParam(':genre_en', $prize['genre_en'], PDO::PARAM_STR);
+                    $stmtDetails->execute();
+                    $detailsId = $this->db->lastInsertId();
+                }
+
+                if (!isset($prize['id']) || empty($prize['id'])) {
+                    // Ak `id` neexistuje, vložíme novú cenu
+                    $stmtPrizeInsert = $this->db->prepare("INSERT INTO prizes (year, category, contrib_sk, contrib_en, details_id) VALUES (:year, :category, :contrib_sk, :contrib_en, :details_id)");
+                    $stmtPrizeInsert->bindParam(':year', $prize['year'], PDO::PARAM_STR);
+                    $stmtPrizeInsert->bindParam(':category', $prize['category'], PDO::PARAM_STR);
+                    $stmtPrizeInsert->bindParam(':contrib_sk', $prize['contrib_sk'], PDO::PARAM_STR);
+                    $stmtPrizeInsert->bindParam(':contrib_en', $prize['contrib_en'], PDO::PARAM_STR);
+                    $stmtPrizeInsert->bindParam(':details_id', $detailsId, PDO::PARAM_INT);
+                    $stmtPrizeInsert->execute();
+                    $prizeId = $this->db->lastInsertId();
+                } else {
+                    // Ak existuje, aktualizujeme ju
+                    $stmtPrizeUpdate = $this->db->prepare("UPDATE prizes SET year = :year, category = :category, contrib_sk = :contrib_sk, contrib_en = :contrib_en, details_id = :details_id WHERE id = :prize_id");
+                    $stmtPrizeUpdate->bindParam(':year', $prize['year'], PDO::PARAM_STR);
+                    $stmtPrizeUpdate->bindParam(':category', $prize['category'], PDO::PARAM_STR);
+                    $stmtPrizeUpdate->bindParam(':contrib_sk', $prize['contrib_sk'], PDO::PARAM_STR);
+                    $stmtPrizeUpdate->bindParam(':contrib_en', $prize['contrib_en'], PDO::PARAM_STR);
+                    $stmtPrizeUpdate->bindParam(':details_id', $detailsId, PDO::PARAM_INT);
+                    $stmtPrizeUpdate->bindParam(':prize_id', $prize['id'], PDO::PARAM_INT);
+                    $stmtPrizeUpdate->execute();
+                    $prizeId = $prize['id'];
+                }
+
+                // Namiesto `UPDATE` pouzijeme `INSERT ... ON DUPLICATE KEY UPDATE`
+                $stmtLinkPrize = $this->db->prepare("INSERT INTO laureates_prizes (laureates_id, prize_id) VALUES (:laureates_id, :prize_id) ON DUPLICATE KEY UPDATE prize_id = VALUES(prize_id)");
+                $stmtLinkPrize->bindParam(':laureates_id', $id, PDO::PARAM_INT);
+                $stmtLinkPrize->bindParam(':prize_id', $prizeId, PDO::PARAM_INT);
+                $stmtLinkPrize->execute();
+            }
+
+            $this->db->commit();
+            return 0;
         } catch (PDOException $e) {
+            $this->db->rollBack();
             return "Error: " . $e->getMessage();
         }
-        return 0;
     }
+
+
 
     // Delete a record
     public function destroy($id) {

@@ -16,28 +16,16 @@ $route = explode('/', $_GET['route']);
 
 switch ($method) {
     case 'GET':
-        if ($route[0] == 'laureates' && isset($route[1]) && is_numeric($route[1])) {
+        if ($route[0] == 'laureates' && count($route) == 1) {
+            http_response_code(200);
+            echo json_encode($laureate->index());
+            break;
+        } elseif ($route[0] == 'laureates' && isset($route[1]) && is_numeric($route[1])) {
             $id = $route[1];
             $laureate = $laureate->getLaureateDetails($id);
             if ($laureate) {
                 http_response_code(200);
                 echo json_encode($laureate);
-            } else {
-                http_response_code(404);
-                echo json_encode(['message' => 'Not found']);
-            }
-            break;
-        }
-        if ($route[0] == 'laureates' && count($route) == 1) {
-            http_response_code(200);
-            echo json_encode($laureate->index());
-            break;
-        } elseif ($route[0] == 'laureates' && count($route) == 2 && is_numeric($route[1])) {
-            $id = $route[1];
-            $data = $laureate->show($id);
-            if ($data) {
-                http_response_code(200);
-                echo json_encode($data);
                 break;
             }
         }
@@ -70,7 +58,7 @@ switch ($method) {
                 break;
             }
 
-            $new_laureate = $laureate->show($newID);
+            $new_laureate = $laureate->getLaureateDetails($newID);
             http_response_code(201);
             echo json_encode([
                 'message' => "Created successfully",
@@ -85,7 +73,7 @@ switch ($method) {
     case 'PUT':
         if ($route[0] == 'laureates' && count($route) == 2 && is_numeric($route[1])) {
             $currentID = $route[1];
-            $currentData = $laureate->show($currentID);
+            $currentData = $laureate->getLaureateDetails($currentID);
             if (!$currentData) {
                 http_response_code(404);
                 echo json_encode(['message' => 'Not found']);
@@ -101,7 +89,9 @@ switch ($method) {
                 $currentData['birth_year'],
                 $currentData['death_year'],
                 $currentData['fullname'],
-                $currentData['organisation']
+                $currentData['organisation'],
+                $currentData['countries'] ?? null,
+                $currentData['prizes'] ?? []
             );
 
             if ($status != 0) {
@@ -110,7 +100,7 @@ switch ($method) {
                 break;
             }
 
-            http_response_code(201);
+            http_response_code(200);
             echo json_encode([
                 'message' => "Updated successfully",
                 'data' => $currentData
@@ -123,7 +113,7 @@ switch ($method) {
     case 'DELETE':
         if ($route[0] == 'laureates' && count($route) == 2 && is_numeric($route[1])) {
             $id = $route[1];
-            $exist = $laureate->show($id);
+            $exist = $laureate->getLaureateDetails($id);
             if (!$exist) {
                 http_response_code(404);
                 echo json_encode(['message' => 'Not found']);
