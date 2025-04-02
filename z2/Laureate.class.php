@@ -9,6 +9,51 @@ class Laureate {
         $this->db = $db;
     }
 
+    public function getLaureateDetails($id) {
+        $sql = "SELECT
+            l.id,
+            l.fullname,
+            l.organisation,
+            l.sex,
+            GROUP_CONCAT(DISTINCT c.country_name ORDER BY c.country_name SEPARATOR ', ') AS countries,
+            l.birth_year,
+            l.death_year
+        FROM laureates l
+        LEFT JOIN laureates_countries lc ON l.id = lc.laureates_id
+        LEFT JOIN countries c ON lc.country_id = c.id
+        WHERE l.id = ?
+        GROUP BY l.id";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$id]);
+        $laureate = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($laureate) {
+            $sqlPrizes = "SELECT
+                p.year,
+                p.category,
+                p.contrib_sk,
+                p.contrib_en,
+                d.language_sk,
+                d.language_en,
+                d.genre_sk,
+                d.genre_en
+            FROM prizes p
+            JOIN laureates_prizes lp ON p.id = lp.prize_id
+            LEFT JOIN prize_details d ON p.details_id = d.id
+            WHERE lp.laureates_id = ?
+            ORDER BY p.year";
+
+            $stmtPrizes = $this->db->prepare($sqlPrizes);
+            $stmtPrizes->execute([$id]);
+            $prizes = $stmtPrizes->fetchAll(PDO::FETCH_ASSOC);
+
+            $laureate['prizes'] = $prizes;
+        }
+
+        return $laureate;
+    }
+
     // Get all records
     public function index() {
         $sql = "SELECT
@@ -16,7 +61,7 @@ class Laureate {
             l.fullname,
             l.organisation,
             l.sex,
-            GROUP_CONCAT(DISTINCT c.country_name ORDER BY c.country_name SEPARATOR ', ') AS countries,
+            GROUP_CONCAT(DISTINCT COALESCE(c.country_name, 'Neznáma krajina') ORDER BY c.country_name SEPARATOR ', ') AS countries,
             l.birth_year,
             l.death_year
         FROM

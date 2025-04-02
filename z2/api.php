@@ -16,6 +16,18 @@ $route = explode('/', $_GET['route']);
 
 switch ($method) {
     case 'GET':
+        if ($route[0] == 'laureates' && isset($route[1]) && is_numeric($route[1])) {
+            $id = $route[1];
+            $laureate = $laureate->getLaureateDetails($id);
+            if ($laureate) {
+                http_response_code(200);
+                echo json_encode($laureate);
+            } else {
+                http_response_code(404);
+                echo json_encode(['message' => 'Not found']);
+            }
+            break;
+        }
         if ($route[0] == 'laureates' && count($route) == 1) {
             http_response_code(200);
             echo json_encode($laureate->index());

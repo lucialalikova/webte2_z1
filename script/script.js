@@ -16,16 +16,18 @@ async function fetchLaureates() {
 
         data.forEach(laureate => {
             console.log("Processing laureate:", laureate);
-            const sex = laureate.sex === 'F' ? 'Žena' : (laureate.sex === 'M' ? 'Muž' : 'ORG');
-            const birth_year = laureate.birth_year != 0 ? laureate.birth_year : 'Not known';
-            const death_year = laureate.death_year != 0 ? laureate.death_year : 'Still alive';
+            const sex = laureate.sex === 'F' ? 'Žena' : (laureate.sex === 'M' ? 'Muž' : '-');
+            const birth_year = laureate.birth_year != 0 ? laureate.birth_year : '-';
+            const death_year = laureate.death_year != 0 ? laureate.death_year : '-';
+            const laureateName = laureate.fullname ?? laureate.organisation;
+            const laureateLink = `<a href='/z1/z2/detail.php?id=${laureate.id}'>${laureateName}</a>`;
 
             // Ak laureát má viacero cien, vytvoríme viac riadkov
             if (laureate.prizes && laureate.prizes.length > 0) {
                 laureate.prizes.forEach(prize => {
                     const tableRow = `<tr style='background-color: #f2d1e1;'>
                         <td>${prize.year}</td>
-                        <td>${laureate.fullname ?? laureate.organisation}</td>
+                        <td>${laureateLink}</td>
                         <td>${sex}</td>
                         <td>${laureate.countries}</td>
                         <td>${birth_year}</td>
@@ -38,7 +40,7 @@ async function fetchLaureates() {
                 // Ak laureát nemá cenu (nemalo by sa stať, ale pre istotu)
                 const tableRow = `<tr style='background-color: #f2d1e1;'>
                     <td>Neznámy</td>
-                    <td>${laureate.fullname ?? laureate.organisation}</td>
+                    <td>${laureateLink}</td>
                     <td>${sex}</td>
                     <td>${laureate.countries}</td>
                     <td>${birth_year}</td>
