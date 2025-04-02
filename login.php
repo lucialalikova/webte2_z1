@@ -135,7 +135,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
             <div class="navbar-nav me-auto">
-                <a class="nav-link" href="index.php">Laureáti</a>
+                <a class="nav-link" href="laureates_prizes">Laureáti</a>
             </div>
             <div class="d-flex ms-auto"></div>
         </div>

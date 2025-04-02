@@ -7,7 +7,7 @@ session_start();
 
 // Check if the user is already logged in, if yes then redirect him to welcome page
 if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
-    header("location: index.php");
+    header("location: laureates_prizes");
     exit;
 }
 
@@ -136,7 +136,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
             <div class="navbar-nav">
-                <a class="nav-link" href="index.php">Laureáti</a>
+                <a class="nav-link" href="laureates_prizes">Laureáti</a>
             </div>
         </div>
     </div>

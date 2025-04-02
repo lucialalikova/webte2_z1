@@ -147,7 +147,7 @@ $login_history = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
             <div class="navbar-nav me-auto">
-                <a class="nav-link" href="index.php">Laureáti</a>
+                <a class="nav-link" href="z2/index.php">Laureáti</a>
             </div>
 
             <div class="d-flex ms-auto">
@@ -242,7 +242,7 @@ $login_history = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
 
 
-        <a href="index.php" class="btn btn-secondary mt-4 " style="background-color: #001f3d; border-color: #001f3d; color: white;">Späť na úvodnú stránku</a>
+        <a href="z2/index.php" class="btn btn-secondary mt-4 " style="background-color: #001f3d; border-color: #001f3d; color: white;">Späť na úvodnú stránku</a>
     </div>
 </main>
 
