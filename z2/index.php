@@ -52,6 +52,7 @@
             </tbody>
         </table>
     </div>
+    <a href="add_laureate.php" class="btn btn-primary mt-4">Pridať laureáta</a>
 </main>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

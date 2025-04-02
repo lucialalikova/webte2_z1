@@ -54,7 +54,15 @@ switch ($method) {
                 }
             }
 
-            $newID = $laureate->store($data['sex'], $data['birth_year'], $data['death_year'], $data['fullname'], $data['organisation']);
+            $newID = $laureate->store(
+                $data['sex'],
+                $data['birth_year'],
+                $data['death_year'],
+                $data['fullname'],
+                $data['organisation'],
+                $data['countries'] ?? null,
+                $data['prizes'] ?? []
+            );
 
             if (!is_numeric($newID)) {
                 http_response_code(400);
