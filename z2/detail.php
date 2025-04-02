@@ -49,6 +49,9 @@
     </div>
 
     <a href="index.php" class="btn btn-primary mt-4">← Späť na zoznam</a>
+    <div class="text-center mt-5">
+        <button id="delete-laureate" class="btn btn-danger">Vymazať laureáta</button>
+    </div>
 </main>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -114,6 +117,29 @@
         } else {
             $('#laureate-details').html('<p>Neplatné ID laureáta.</p>');
         }
+
+        // Event listener pre vymazanie laureáta
+        $('#delete-laureate').click(function() {
+            if (confirm('Naozaj chcete vymazať tohto laureáta? Táto akcia je nezvratná.')) {
+                fetch(`/z1/z2/api/v0/laureates/${id}`, {
+                    method: 'DELETE',
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        alert('Laureát bol úspešne vymazaný.');
+                        window.location.href = 'index.php'; // Presmerovanie späť na zoznam
+                    })
+                    .catch(error => {
+                        console.error('Error deleting laureate:', error);
+                        alert('Chyba pri vymazávaní laureáta.');
+                    });
+            }
+        });
     });
 </script>
 </body>

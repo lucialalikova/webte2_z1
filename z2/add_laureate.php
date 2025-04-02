@@ -35,6 +35,7 @@
 <main class="container mt-4">
     <h1 class="mb-4 text-center">Pridať laureáta</h1>
     <form id="add-laureate-form">
+        <!-- Existing form fields -->
         <div class="mb-3">
             <label for="fullname" class="form-label">Celé meno</label>
             <input type="text" class="form-control" id="fullname" name="fullname">
@@ -107,6 +108,16 @@
         </div>
         <button type="submit" class="btn btn-primary">Pridať laureáta</button>
     </form>
+
+    <h2 class="mt-5 text-center">Pridať viacero laureátov</h2>
+    <form id="upload-json-form" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label for="jsonFile" class="form-label">JSON súbor</label>
+            <input type="file" class="form-control" id="jsonFile" name="jsonFile" accept=".json" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Nahrať</button>
+    </form>
+    <div id="result" class="mt-3"></div>
 </main>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -161,6 +172,26 @@
                     console.error('Error:', error);
                     alert('Chyba pri pridávaní laureáta.');
                 });
+        });
+
+        $('#upload-json-form').on('submit', function(event) {
+            event.preventDefault();
+            var formData = new FormData(this);
+            $.ajax({
+                url: '../api/upload_laureates.php',
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function(response) {
+                    var result = JSON.parse(response);
+                    if (result.status === 'success') {
+                        $('#result').html('<div class="alert alert-success">Laureáti boli úspešne nahraní!</div>');
+                    } else {
+                        $('#result').html('<div class="alert alert-danger">Chyba: ' + result.message + '</div>');
+                    }
+                }
+            });
         });
     });
 </script>

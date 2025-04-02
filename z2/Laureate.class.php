@@ -213,6 +213,78 @@ class Laureate {
         }
     }
 
+    public function insertMultiple($laureates) {
+        try {
+            $this->db->beginTransaction();
+
+            foreach ($laureates as $laureate) {
+                // Insert laureate details
+                $stmt = $this->db->prepare("INSERT INTO laureates (fullname, organisation, sex, birth_year, death_year) VALUES (:fullname, :organisation, :sex, :birth_year, :death_year)");
+                $stmt->bindParam(':fullname', $laureate['fullname'], PDO::PARAM_STR);
+                $stmt->bindParam(':organisation', $laureate['organisation'], PDO::PARAM_STR);
+                $stmt->bindParam(':sex', $laureate['sex'], PDO::PARAM_STR);
+                $stmt->bindParam(':birth_year', $laureate['birth_year'], PDO::PARAM_INT);
+                $stmt->bindParam(':death_year', $laureate['death_year'], PDO::PARAM_INT);
+                $stmt->execute();
+                $laureateId = $this->db->lastInsertId();
+
+                // Insert countries
+                foreach ($laureate['countries'] as $country) {
+                    $stmtCountry = $this->db->prepare("SELECT id FROM countries WHERE country_name = :country_name");
+                    $stmtCountry->bindParam(':country_name', $country, PDO::PARAM_STR);
+                    $stmtCountry->execute();
+                    $countryId = $stmtCountry->fetchColumn();
+
+                    if (!$countryId) {
+                        $stmtInsertCountry = $this->db->prepare("INSERT INTO countries (country_name) VALUES (:country_name)");
+                        $stmtInsertCountry->bindParam(':country_name', $country, PDO::PARAM_STR);
+                        $stmtInsertCountry->execute();
+                        $countryId = $this->db->lastInsertId();
+                    }
+
+                    $stmtLinkCountry = $this->db->prepare("INSERT INTO laureates_countries (laureates_id, country_id) VALUES (:laureates_id, :country_id)");
+                    $stmtLinkCountry->bindParam(':laureates_id', $laureateId, PDO::PARAM_INT);
+                    $stmtLinkCountry->bindParam(':country_id', $countryId, PDO::PARAM_INT);
+                    $stmtLinkCountry->execute();
+                }
+
+                // Insert prizes
+                foreach ($laureate['prizes'] as $prize) {
+                    $detailsId = null;
+                    if (!empty($prize['language_sk']) || !empty($prize['language_en']) || !empty($prize['genre_sk']) || !empty($prize['genre_en'])) {
+                        $stmtDetails = $this->db->prepare("INSERT INTO prize_details (language_sk, language_en, genre_sk, genre_en) VALUES (:language_sk, :language_en, :genre_sk, :genre_en)");
+                        $stmtDetails->bindParam(':language_sk', $prize['language_sk'], PDO::PARAM_STR);
+                        $stmtDetails->bindParam(':language_en', $prize['language_en'], PDO::PARAM_STR);
+                        $stmtDetails->bindParam(':genre_sk', $prize['genre_sk'], PDO::PARAM_STR);
+                        $stmtDetails->bindParam(':genre_en', $prize['genre_en'], PDO::PARAM_STR);
+                        $stmtDetails->execute();
+                        $detailsId = $this->db->lastInsertId();
+                    }
+
+                    $stmtPrize = $this->db->prepare("INSERT INTO prizes (year, category, contrib_sk, contrib_en, details_id) VALUES (:year, :category, :contrib_sk, :contrib_en, :details_id)");
+                    $stmtPrize->bindParam(':year', $prize['year'], PDO::PARAM_STR);
+                    $stmtPrize->bindParam(':category', $prize['category'], PDO::PARAM_STR);
+                    $stmtPrize->bindParam(':contrib_sk', $prize['contrib_sk'], PDO::PARAM_STR);
+                    $stmtPrize->bindParam(':contrib_en', $prize['contrib_en'], PDO::PARAM_STR);
+                    $stmtPrize->bindParam(':details_id', $detailsId, PDO::PARAM_INT);
+                    $stmtPrize->execute();
+                    $prizeId = $this->db->lastInsertId();
+
+                    $stmtLinkPrize = $this->db->prepare("INSERT INTO laureates_prizes (laureates_id, prize_id) VALUES (:laureates_id, :prize_id)");
+                    $stmtLinkPrize->bindParam(':laureates_id', $laureateId, PDO::PARAM_INT);
+                    $stmtLinkPrize->bindParam(':prize_id', $prizeId, PDO::PARAM_INT);
+                    $stmtLinkPrize->execute();
+                }
+            }
+
+            $this->db->commit();
+            return 0;
+        } catch (PDOException $e) {
+            $this->db->rollBack();
+            return "Error: " . $e->getMessage();
+        }
+    }
+
     // Update a record
     public function update($id, $sex, $birth_year, $death_year, $fullname = null, $organisation = null, $countries = null, $prizes = []) {
         try {
