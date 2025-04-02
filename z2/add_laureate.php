@@ -118,6 +118,11 @@
         <button type="submit" class="btn btn-primary">Nahrať</button>
     </form>
     <div id="result" class="mt-3"></div>
+
+    <!-- Redirect button -->
+    <div class="text-center mt-5">
+        <button id="redirect-button" class="btn btn-secondary">Späť na hlavnú stránku</button>
+    </div>
 </main>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -192,6 +197,10 @@
                     }
                 }
             });
+        });
+
+        $('#redirect-button').on('click', function() {
+            window.location.href = 'index.php';
         });
     });
 </script>
